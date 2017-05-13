@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+""" Given a directory of video files, create a .m3u playlist that will pick
+random start and end points ala montage
+"""
+
 import argparse
 import os
 from random import randrange, shuffle

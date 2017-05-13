@@ -1,2 +1,2 @@
 # ffmpeg-scripts
-Various scripts for basic video editing using ffmpeg
+Various Python scripts for basic video editing (requires ffmpeg to be installed).

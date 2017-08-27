@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-
-""" Given a directory of video files, create a .m3u playlist that will pick
-random start and end points ala montage
-"""
-
 import argparse
 import os
 from random import randrange, shuffle
@@ -13,22 +8,26 @@ import subprocess
 # CONSTANTS #
 # --------- #
 # Settable
-SHUFFLE_STYLE      = 2
+SHUFFLE_STYLE      = 1
 
 SHUFFLE_AT_EACH    = 1  # Fixed
 SHUFFLE_AT_END     = 2  # Fixed
-DEFAULT_DURATION   = 5  # per clip
-DEFAULT_ITERATIONS = 10
+DEFAULT_DURATION   = 3  # per clip
+DEFAULT_ITERATIONS = 3
 PLAYLIST_EXT       = '.m3u'
 ERROR_MARGIN       = 2
 
 # argument layout
-def _get_args():
+def parser():
     p = argparse.ArgumentParser()
     p.add_argument('videos_directory')
     p.add_argument('-d', '--duration', help='integer duration of each')
     p.add_argument('-i', '--iterations')
-    return p.parse_args()
+    p.add_argument('-n', action='store_true', help='start at beginning')
+    return p
+
+def _get_args():
+    return parser().parse_args()
 
 # -------------------------------------------------------------------------- #
 #                                                                            #
@@ -97,17 +96,22 @@ def build_montage_playlist(args):
     with open(playlist_path, 'w') as f:
         f.write('#EXTM3U\n')
         for filepath, vidlength in filepaths_lengths_to_write:
-            if vidlength < duration:
+            start = 0
+            # write couple lines to playlist specifying random start point
+            # running for 'duration'
+            if vidlength <= duration:
                 playlist_duration_sec += vidlength
             else:
-                # write couple lines to playlist specifying random start point
-                # running for 'duration'
                 playlist_duration_sec += duration
-                start = randrange(vidlength - 1 - duration)
-                stop = start + duration
-                assert stop < vidlength
-                f.write('#EXTVLCOPT:start-time={}\n'.format(start))
-                f.write('#EXTVLCOPT:stop-time={}\n'.format(stop))
+                # if not starting at beginning
+                if not args.n:
+                    if (vidlength - duration - 1 > 0):
+                        start = randrange(vidlength - duration - 1)
+
+            stop = start + duration
+            assert stop < vidlength
+            f.write('#EXTVLCOPT:start-time={}\n'.format(start))
+            f.write('#EXTVLCOPT:stop-time={}\n'.format(stop))
             f.write(filepath + '\n')
     
     playlist_duration_min = int(playlist_duration_sec / 60)

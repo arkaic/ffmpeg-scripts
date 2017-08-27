@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 from os import listdir, remove
 import os.path
@@ -28,6 +28,9 @@ def join(args):
     if not filenames:
         return error_and_kill("No files found in given directory. Is directory name correct?")
 
+    if len(filenames) == 1:
+        return error_and_kill("One file found, skipping join")
+
     for filename in listdir(args.directory):
         _, ext = splitext(filename)
         if ext and ext != 'txt':  # todo robustify
@@ -54,7 +57,6 @@ def join(args):
 
     call(command(textfile_path, outpath))
     remove(textfile_path)
-    call(['open', outpath])
 
 def error_and_kill(msg):
     print(msg)
